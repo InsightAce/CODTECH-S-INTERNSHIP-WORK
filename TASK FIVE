@@ -1,0 +1,68 @@
+import pandas as pd
+
+# Load the data
+df = pd.read_csv('AAPL.csv')
+
+# Check the first few rows of the dataset
+df.head()
+
+# Check for missing values
+df.isnull().sum()
+
+# Convert 'Date' column to datetime type
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Set the 'Date' as the index (important for time series analysis)
+df.set_index('Date', inplace=True)
+
+# Check the data again after cleaning
+df.head()
+
+import matplotlib.pyplot as plt
+
+# Plot the closing price
+plt.figure(figsize=(10, 6))
+plt.plot(df['Close'], label='AAPL Closing Price')
+plt.title('AAPL Stock Closing Price Over Time')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
+
+# Calculate moving averages
+df['50-day MA'] = df['Close'].rolling(window=50).mean()
+df['200-day MA'] = df['Close'].rolling(window=200).mean()
+
+# Plot the closing price along with moving averages
+plt.figure(figsize=(10, 6))
+plt.plot(df['Close'], label='AAPL Closing Price')
+plt.plot(df['50-day MA'], label='50-Day Moving Average')
+plt.plot(df['200-day MA'], label='200-Day Moving Average')
+plt.title('AAPL Stock Price with Moving Averages')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
+
+from statsmodels.tsa.arima.model import ARIMA
+
+# Split the data into training and test sets (80% train, 20% test)
+train_size = int(len(df) * 0.8)
+train, test = df['Close'][:train_size], df['Close'][train_size:]
+
+# Fit the ARIMA model
+model = ARIMA(train, order=(5, 1, 0))  # (p,d,q) - adjust parameters if needed
+model_fit = model.fit()
+
+# Make predictions on the test set
+predictions = model_fit.forecast(steps=len(test))
+
+# Plot the results
+plt.figure(figsize=(10, 6))
+plt.plot(train.index, train, label='Train Data')
+plt.plot(test.index, test, label='Test Data')
+plt.plot(test.index, predictions, label='ARIMA Predictions', color='red')
+plt.legend()
+plt.title('AAPL Stock Price Prediction using ARIMA')
+plt.show()
+
